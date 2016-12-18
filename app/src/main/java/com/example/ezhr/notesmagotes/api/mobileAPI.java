@@ -1,6 +1,7 @@
 package com.example.ezhr.notesmagotes.api;
 
 import com.example.ezhr.notesmagotes.models.Note;
+import com.example.ezhr.notesmagotes.models.Result;
 import com.example.ezhr.notesmagotes.models.User;
 
 import java.util.List;
@@ -8,32 +9,30 @@ import java.util.List;
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
+import retrofit2.http.Header;
+import retrofit2.http.Headers;
 import retrofit2.http.POST;
-import retrofit2.http.Path;
-import retrofit2.http.Query;
 
 public interface mobileAPI {
 
     // User requests
-    @GET("users/all")
-    Call<List<User>> getUsers();
-
-    @GET("users/id/{id}")
-    Call<User> getUserById(@Path("id") String id);
-
-    @GET("users/username/{username}")
-    Call<User> getUserByUsername(@Path("username") String username);
-
     @POST("users/new")
-    Call<User> newUser(@Body User user);
+    Call<Result> newUser(@Body User user);
+
+    @POST("users/authenticate")
+    Call<Result> login(@Body User user);
+
 
     // Note requests
-    @GET("notes/id/{userId}")
-    Call<List<Note>> getNotesById(@Path("userId") String userId);
+    @Headers({"Content-Type: application/json"})
+    @GET("notes/all")
+    Call<List<Note>> getNotes(@Header("x-token") String token);
 
-    @GET("notes/username/{username}")
-    Call<List<Note>> getNotesByUsername(@Path("username") String username);
-
+    @Headers({"Content-Type: application/json"})
     @POST("notes/new")
-    Call<Note> saveNote(@Body Note note);
+    Call<Result> newNote(@Header("x-token") String token, @Body Note note);
+
+    @Headers({"Content-Type: application/json"})
+    @POST("notes/update")
+    Call<Result> updateNote(@Header("x-token") String token, @Body Note note);
 }

@@ -1,194 +1,115 @@
 package com.example.ezhr.notesmagotes;
 
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.Toast;
+import android.widget.TextView;
 
-import com.example.ezhr.notesmagotes.api.mobileAPI;
 import com.example.ezhr.notesmagotes.models.Note;
-import com.example.ezhr.notesmagotes.models.User;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 
-import com.example.ezhr.notesmagotes.api.mobileAPI;
-
-import java.util.List;
-
-import static com.example.ezhr.notesmagotes.UserActivity.BASE_URL;
+import static com.example.ezhr.notesmagotes.UserActivity.TAG;
+import static com.example.ezhr.notesmagotes.UserActivity.TOKEN_FILE;
+import static com.example.ezhr.notesmagotes.UserActivity.TOKEN_KEY;
+import static com.example.ezhr.notesmagotes.UserActivity.USER_NAME;
+import static com.example.ezhr.notesmagotes.UserActivity.api;
 
 public class NotesActivity extends AppCompatActivity {
 
-    @BindView(R.id.noteUsernameEditText)
-    EditText noteUsernameEditText;
-    @BindView(R.id.noteUserIdEditText)
-    EditText noteUserIdEditText;
-    @BindView(R.id.noteIndexEditText)
-    EditText noteIndexEditText;
-    @BindView(R.id.noteTitleEditText)
-    EditText noteTitleEditText;
-    @BindView(R.id.noteNoteEditText)
-    EditText noteNoteEditText;
+    public static String token;
 
-    @BindView(R.id.noteIdSearchButton)
-    Button noteIdSearchButton;
-    @BindView(R.id.noteUsernameSearchButton)
-    Button noteUsernameSearchButton;
-    @BindView(R.id.noteSaveButton)
-    Button noteSaveButton;
-    @BindView(R.id.switchToUsersButton)
-    Button switchToUsersButton;
+    @BindView(R.id.notesList)
+    RecyclerView notesRecyclerView;
+    @BindView(R.id.newNoteTextView)
+    TextView newNoteTextView;
 
-    static int index;
-    static String username;
-    static String id;
-
-    String defaultId = "5851d081eac39226881595d2";
-    int defaultIndex = 0;
-
-    mobileAPI api;
+    SharedPreferences sharedPrefs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_notes);
 
+        sharedPrefs = getSharedPreferences(TOKEN_FILE, MODE_PRIVATE);
+        token = sharedPrefs.getString(TOKEN_KEY, null);
+        String username = sharedPrefs.getString(USER_NAME, null);
+        if (token == null || username == null) {
+            startActivity(new Intent(NotesActivity.this, UserActivity.class));
+            finish();
+        }
+
         ButterKnife.bind(this);
 
-        noteUserIdEditText.setText(defaultId);
-        noteIndexEditText.setText(String.valueOf(defaultIndex));
+        getSupportActionBar().setTitle(username + "'s Notes");
 
-        Gson gson = new GsonBuilder().setLenient().create();
-
-        Retrofit retrofit = new Retrofit.Builder()
-                .addConverterFactory(GsonConverterFactory.create(gson))
-                .baseUrl(BASE_URL)
-                .build();
-
-        api = retrofit.create(mobileAPI.class);
-
-        noteIdSearchButton.setOnClickListener(new View.OnClickListener() {
+        notesRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+        newNoteTextView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (noteUserIdEditText.getText().length() < 1 || noteUserIdEditText == null
-                        || noteIndexEditText.getText().length() < 1 || noteIndexEditText == null) {
-                    Toast.makeText(NotesActivity.this, "User ID/index incorrect", Toast.LENGTH_SHORT).show();
-                } else {
-                    index = Integer.valueOf(noteIndexEditText.getText().toString());
-                    id = noteUserIdEditText.getText().toString();
-                    searchById();
-                }
-            }
-        });
-
-        noteUsernameSearchButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (noteUsernameEditText.getText().length() < 1 || noteUsernameEditText == null
-                        || noteIndexEditText.getText().length() < 1 || noteIndexEditText == null) {
-                    Toast.makeText(NotesActivity.this, "Username/index incorrect", Toast.LENGTH_SHORT).show();
-                } else {
-                    index = Integer.valueOf(noteIndexEditText.getText().toString());
-                    username = noteUsernameEditText.getText().toString();
-                    searchByUsername();
-                }
-            }
-        });
-
-        noteSaveButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (noteUserIdEditText.length() < 1 || noteUserIdEditText == null ||
-                        noteTitleEditText.getText().length() < 1 || noteTitleEditText == null) {
-                    Toast.makeText(NotesActivity.this, "Please input user ID/title", Toast.LENGTH_SHORT).show();
-                } else {
-                    id = noteUserIdEditText.getText().toString();
-                    saveNote();
-                }
-            }
-        });
-
-        switchToUsersButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(NotesActivity.this, UserActivity.class);
-                startActivity(intent);
-                finish();
+                startActivity(new Intent(v.getContext(), SingleNoteActivity.class));
             }
         });
     }
 
-    public void searchById() {
-        Call<List<Note>> call = api.getNotesById(id);
+    @Override
+    protected void onStart() {
+        fetchNotes();
+        super.onStart();
+    }
+
+    private void fetchNotes() {
+        Call<List<Note>> call = api.getNotes(token);
         call.enqueue(new Callback<List<Note>>() {
             @Override
             public void onResponse(Call<List<Note>> call, Response<List<Note>> response) {
-                Note note = response.body().get(index);
-                updateFields(note);
+                if (response.code() == 200) {
+                    List<Note> notesList = new ArrayList<Note>();
+                    for (Note note : response.body()) {
+                        notesList.add(note);
+                    }
+                    notesRecyclerView.setAdapter(new RecyclerAdapter(notesList));
+                } else {
+                    Log.e(TAG, "onResponse: " + response.errorBody().toString());
+                }
             }
 
             @Override
             public void onFailure(Call<List<Note>> call, Throwable t) {
-                Toast.makeText(NotesActivity.this, t.toString(), Toast.LENGTH_SHORT).show();
+                Log.e(TAG, "onFailure: " + t.toString());
             }
         });
     }
 
-    private void searchByUsername() {
-        Call<List<Note>> call = api.getNotesByUsername(username);
-        call.enqueue(new Callback<List<Note>>() {
-            @Override
-            public void onResponse(Call<List<Note>> call, Response<List<Note>> response) {
-                Note note = response.body().get(index);
-                updateFields(note);
-            }
-
-            @Override
-            public void onFailure(Call<List<Note>> call, Throwable t) {
-                Toast.makeText(NotesActivity.this, t.toString(), Toast.LENGTH_SHORT).show();
-            }
-        });
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.noteslist, menu);
+        return true;
     }
 
-    public void updateFields(Note note) {
-        noteUsernameEditText.setText(note.getUsername());
-        noteUserIdEditText.setText(note.getUserId());
-        noteTitleEditText.setText(note.getTitle());
-        noteNoteEditText.setText(note.getNote());
-    }
-
-    public void saveNote() {
-        String title = noteTitleEditText.getText().toString();
-        String noteContent = noteNoteEditText.getText().toString();
-
-        Note note = new Note(title, noteContent, id);
-        
-        Call<Note> call = api.saveNote(note);
-        call.enqueue(new Callback<Note>() {
-            @Override
-            public void onResponse(Call<Note> call, Response<Note> response) {
-                if (response.code() == 201) {
-                    Toast.makeText(NotesActivity.this, "Note saved!", Toast.LENGTH_SHORT).show();
-                } else if (response.code() == 400) {
-                    Toast.makeText(NotesActivity.this, "FAIL: Invalid user ID", Toast.LENGTH_SHORT).show();
-                }
-            }
-
-            @Override
-            public void onFailure(Call<Note> call, Throwable t) {
-                Toast.makeText(NotesActivity.this, t.toString(), Toast.LENGTH_SHORT).show();
-            }
-        });
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.logout:
+                sharedPrefs.edit().clear().commit();
+                startActivity(new Intent(NotesActivity.this, UserActivity.class));
+        }
+        return true;
     }
 }
