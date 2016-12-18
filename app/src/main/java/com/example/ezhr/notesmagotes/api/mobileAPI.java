@@ -35,4 +35,8 @@ public interface mobileAPI {
     @Headers({"Content-Type: application/json"})
     @POST("notes/update")
     Call<Result> updateNote(@Header("x-token") String token, @Body Note note);
+
+    @Headers({"Content-Type: application/json"})
+    @POST("notes/delete")
+    Call<Result> deleteNote(@Header("x-token") String token, @Body Note note);
 }
