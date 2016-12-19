@@ -218,7 +218,7 @@ public class SingleNoteActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.singlenote, menu);
-        return super.onCreateOptionsMenu(menu);
+        return true;
     }
 
     @Override
@@ -226,8 +226,10 @@ public class SingleNoteActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             case (R.id.deleteNote):
                 if (note == null || note.getId() == null) {
-                    if (edited)
+                    if (edited) {
                         discardNote();
+                        return true;
+                    }
                     else {
                         finish();
                         return true;
@@ -246,7 +248,7 @@ public class SingleNoteActivity extends AppCompatActivity {
                             .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
-                                    Call<Result> call = api.deleteNote(token, note);
+                                    Call<Result> call = api.deleteNote(token, note.getId());
                                     call.enqueue(new Callback<Result>() {
                                         @Override
                                         public void onResponse(Call<Result> call, Response<Result> response) {

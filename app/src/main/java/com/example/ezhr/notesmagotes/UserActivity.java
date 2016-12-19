@@ -85,7 +85,7 @@ public class UserActivity extends AppCompatActivity {
         ButterKnife.bind(this);
 
         if (serverIpSharedPrefs.getString(SERVER_KEY, null) == null) {
-            serverUrlEditText.setText("http://10.0.2.2:3000/");
+            serverUrlEditText.setText("10.0.2.2:3000/");
         } else {
             serverUrlEditText.setText(serverIpSharedPrefs.getString(SERVER_KEY, null));
         }
