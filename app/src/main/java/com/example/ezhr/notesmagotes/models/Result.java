@@ -11,10 +11,6 @@ public class Result {
     String token;
     int status;
 
-    public int getStatus() {
-        return status;
-    }
-
     public String getSuccess() {
         return success;
     }

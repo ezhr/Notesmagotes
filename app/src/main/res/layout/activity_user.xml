@@ -12,7 +12,8 @@
 
 
     <LinearLayout
-        android:layout_width="200dp"
+        android:id="@+id/userLinearLayout"
+        android:layout_width="250dp"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
         android:orientation="vertical">
@@ -20,53 +21,82 @@
         <GridLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
             android:layout_marginBottom="16dp"
             android:columnCount="2">
 
             <TextView
+                android:id="@+id/loginTextView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_columnWeight="1"
                 android:fontFamily="sans-serif"
                 android:text="LOG IN"
-                android:id="@+id/loginTextView"
                 android:textAlignment="center" />
 
             <TextView
+                android:id="@+id/signupTextView"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_columnWeight="1"
-                android:id="@+id/signupTextView"
                 android:text="SIGN UP"
                 android:textAlignment="center" />
 
         </GridLayout>
 
         <EditText
+            android:id="@+id/usernameEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Username"
-            android:id="@+id/usernameEditText"
             android:textSize="14sp" />
 
         <EditText
+            android:id="@+id/passwordEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Password"
-            android:id="@+id/passwordEditText"
-            android:textSize="14sp"
-            android:inputType="textPassword" />
+            android:inputType="textPassword"
+            android:textSize="14sp" />
+
+
+
+        <LinearLayout android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Server URL: "
+                android:textColor="@color/colorAccent"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="http://"/>
+
+            <EditText
+                android:id="@+id/serverUrlEditText"
+                android:layout_weight="1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:maxLines="1"
+                android:inputType="text"
+                android:scrollHorizontally="true"/>
+
+        </LinearLayout>
 
         <TextView
-            android:layout_marginTop="16dp"
-            android:layout_gravity="center_horizontal"
+            android:id="@+id/userGoTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textAlignment="center"
-            android:id="@+id/goTextView"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="16sp"
             android:text="GO!"
-            android:textSize="18sp"
-            android:textColor="@color/colorAccent" />
+            android:textAlignment="center"
+            android:textColor="@color/colorAccent"
+            android:textSize="18sp" />
 
     </LinearLayout>
 

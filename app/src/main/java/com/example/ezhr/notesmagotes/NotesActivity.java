@@ -109,6 +109,7 @@ public class NotesActivity extends AppCompatActivity {
             case R.id.logout:
                 sharedPrefs.edit().clear().commit();
                 startActivity(new Intent(NotesActivity.this, UserActivity.class));
+                finish();
         }
         return true;
     }

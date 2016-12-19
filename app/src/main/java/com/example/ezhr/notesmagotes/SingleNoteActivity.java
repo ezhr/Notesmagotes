@@ -134,6 +134,8 @@ public class SingleNoteActivity extends AppCompatActivity {
             public void onClick(View v) {
                 if (edited)
                     discardNote();
+                else
+                    finish();
             }
         });
 
@@ -142,6 +144,10 @@ public class SingleNoteActivity extends AppCompatActivity {
             public void onClick(View v) {
                 String title = singleTitleEditText.getText().toString();
                 String content = singleContentEditText.getText().toString();
+                if (title == null) {
+                    Toast.makeText(SingleNoteActivity.this, "Please enter a title!", Toast.LENGTH_SHORT).show();
+                    return;
+                }
                 saveNoteProgressBar.setVisibility(View.VISIBLE);
                 if (note == null)
                     note = new Note();
@@ -159,7 +165,6 @@ public class SingleNoteActivity extends AppCompatActivity {
                                 Log.e(TAG, "onResponse: " + response.code());
                             }
                         }
-
                         @Override
                         public void onFailure(Call<Result> call, Throwable t) {
                             Log.e(TAG, "onFailure: " + t.toString());
@@ -170,14 +175,12 @@ public class SingleNoteActivity extends AppCompatActivity {
                     call.enqueue(new Callback<Result>() {
                         @Override
                         public void onResponse(Call<Result> call, Response<Result> response) {
-                            if (response.code() == 201) {
-                                Toast.makeText(SingleNoteActivity.this, response.body().getMessage(), Toast.LENGTH_SHORT).show();
+                            Toast.makeText(SingleNoteActivity.this, response.body().getMessage(), Toast.LENGTH_SHORT).show();
+                            if (response.code() == 201)
                                 finish();
-                            } else {
-                                Log.e(TAG, "onResponse: " + response.code());
-                            }
+                            else
+                                saveNoteProgressBar.setVisibility(View.GONE);
                         }
-
                         @Override
                         public void onFailure(Call<Result> call, Throwable t) {
                             Log.e(TAG, "onFailure: " + t.toString());

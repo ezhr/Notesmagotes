@@ -17,6 +17,7 @@ import com.example.ezhr.notesmagotes.models.User;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import butterknife.BindView;
@@ -39,53 +40,62 @@ public class UserActivity extends AppCompatActivity {
     EditText usernameEditText;
     @BindView(R.id.passwordEditText)
     EditText passwordEditText;
-    @BindView(R.id.goTextView)
-    TextView goTextView;
+    @BindView(R.id.userGoTextView)
+    TextView userGoTextView;
+    @BindView(R.id.serverUrlEditText)
+    EditText serverUrlEditText;
 
-    public final static String BASE_URL = "http://10.0.2.2:3000/api/";
+
+    public static String BASE_URL = null;
     public final static String TOKEN_FILE = "com.example.ezhr.notesmagotes.token";
     public final static String TOKEN_KEY = "com.example.ezhr.notesmagotes.tokenkey";
     public final static String USER_NAME = "com.example.ezhr.notesmagotes.username";
-    public static final String TAG = "EzhRLog";
+
+    public final static String SERVER_FILE = "com.example.ezhr.notesmagotes.server";
+    public final static String SERVER_KEY = "com.example.ezhr.notesmagotes.serverkey";
+
+    public static final String TAG = "notesmagotes.log";
 
     public static mobileAPI api;
 
-    SharedPreferences sharedPrefs;
-
     boolean loginCondition = true;
+
+    SharedPreferences tokenSharedPrefs;
+    SharedPreferences serverIpSharedPrefs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user);
 
-        sharedPrefs = getSharedPreferences(TOKEN_FILE, MODE_PRIVATE);
+        String abc = null;
+        Log.e(TAG, "onCreate: " + abc);
+        abc = "abc";
+        Log.e(TAG, "onCreate: " + abc);
 
-        if (sharedPrefs.getString(TOKEN_KEY, null) != null && sharedPrefs.getString(USER_NAME, null) != null)
+
+        tokenSharedPrefs = getSharedPreferences(TOKEN_FILE, MODE_PRIVATE);
+        serverIpSharedPrefs = getSharedPreferences(SERVER_FILE, MODE_PRIVATE);
+
+        if (tokenSharedPrefs.getString(TOKEN_KEY, null) != null
+                && tokenSharedPrefs.getString(USER_NAME, null) != null
+                && serverIpSharedPrefs.getString(SERVER_KEY, null) != null)
             goToNotes();
 
         ButterKnife.bind(this);
 
-        /*HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
-        logging.setLevel(HttpLoggingInterceptor.Level.BODY);
-        OkHttpClient.Builder httpClient = new OkHttpClient().newBuilder();
-        httpClient.addInterceptor(logging);*/
-
-        Gson gson = new GsonBuilder().setLenient().create();
-
-        Retrofit retrofit = new Retrofit
-                .Builder()
-                .baseUrl(BASE_URL)
-                .addConverterFactory(GsonConverterFactory.create(gson))
-//                .client(httpClient.build())
-                .build();
-
-        api = retrofit.create(mobileAPI.class);
+        if (serverIpSharedPrefs.getString(SERVER_KEY, null) == null) {
+            serverUrlEditText.setText("http://10.0.2.2:3000/");
+        } else {
+            serverUrlEditText.setText(serverIpSharedPrefs.getString(SERVER_KEY, null));
+        }
 
         loginTextView.setTextColor(ContextCompat.getColor(this, R.color.colorAccent));
 
-        usernameEditText.setText("beth");
-        passwordEditText.setText("DEVc4xaeJfvvnFJCZZ");
+        //usernameEditText.setText("beth");
+        //passwordEditText.setText("DEVc4xaeJfvvnFJCZZ");
+
+        usernameEditText.requestFocus();
 
         loginTextView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -109,10 +119,17 @@ public class UserActivity extends AppCompatActivity {
             }
         });
 
-        goTextView.setOnClickListener(new View.OnClickListener() {
+        userGoTextView.setOnClickListener(new View.OnClickListener() {
                                           @Override
                                           public void onClick(View v) {
-                                              Log.i(TAG, "onClick: CLICKED");
+                                              String enteredUrl = serverUrlEditText.getText().toString();
+                                              Log.i(TAG, "setupApi: " + enteredUrl);
+                                              if (enteredUrl.charAt(enteredUrl.length() - 1) != '/')
+                                                  enteredUrl = enteredUrl + "/";
+                                              serverIpSharedPrefs.edit().putString(SERVER_KEY, enteredUrl).commit();
+
+                                              setupApi();
+
                                               if (usernameEditText.getText().length() < 1) {
                                                   Toast.makeText(UserActivity.this, "Please enter a username", Toast.LENGTH_SHORT).show();
                                               } else if (passwordEditText.getText().length() < 1) {
@@ -137,10 +154,19 @@ public class UserActivity extends AppCompatActivity {
         call.enqueue(new Callback<Result>() {
             @Override
             public void onResponse(Call<Result> call, Response<Result> response) {
-                SharedPreferences.Editor editor = sharedPrefs.edit();
-                editor.putString(TOKEN_KEY, response.body().getToken()).commit();
-                editor.putString(USER_NAME, username).commit();
-                goToNotes();
+                if (response.code() == 400) {
+                    try {
+                        JSONObject object = new JSONObject(response.errorBody().string());
+                        Toast.makeText(UserActivity.this, object.getString("message"), Toast.LENGTH_SHORT).show();
+                    } catch (Exception e) {
+                        Log.e(TAG, "onResponse: " + e);
+                    }
+                } else {
+                    SharedPreferences.Editor editor = tokenSharedPrefs.edit();
+                    editor.putString(TOKEN_KEY, response.body().getToken()).commit();
+                    editor.putString(USER_NAME, username).commit();
+                    goToNotes();
+                }
             }
 
             @Override
@@ -178,7 +204,29 @@ public class UserActivity extends AppCompatActivity {
     }
 
     private void goToNotes() {
+        setupApi();
         startActivity(new Intent(UserActivity.this, NotesActivity.class));
         finish();
+    }
+
+    private void setupApi() {
+
+        BASE_URL = "http://" + serverIpSharedPrefs.getString(SERVER_KEY, null) + "api/";
+
+        HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
+        logging.setLevel(HttpLoggingInterceptor.Level.BODY);
+        OkHttpClient.Builder httpClient = new OkHttpClient().newBuilder();
+        httpClient.addInterceptor(logging);
+
+        Gson gson = new GsonBuilder().setLenient().create();
+
+        Retrofit retrofit = new Retrofit
+                .Builder()
+                .baseUrl(BASE_URL)
+                .addConverterFactory(GsonConverterFactory.create(gson))
+                .client(httpClient.build())
+                .build();
+
+        api = retrofit.create(mobileAPI.class);
     }
 }
