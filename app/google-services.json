@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "819698436646",
+    "firebase_url": "https://notesmagotes.firebaseio.com",
+    "project_id": "notesmagotes",
+    "storage_bucket": "notesmagotes.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:819698436646:android:3d2092dd661e81ef",
+        "android_client_info": {
+          "package_name": "com.example.ezhr.notesmagotes"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "819698436646-jen80iio2fqg7he669hi2s3n86c0vhsu.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.ezhr.notesmagotes",
+            "certificate_hash": "24FD9F93C9CAFD435570E5739806892E97AC2306"
+          }
+        },
+        {
+          "client_id": "819698436646-hqclbd4ueiru0s9pi9ul09mkid49s3uc.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDivy_P2ktfgHNv2cyuZU6LqShZhNTJ8yY"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "819698436646-hqclbd4ueiru0s9pi9ul09mkid49s3uc.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

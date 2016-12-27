@@ -37,6 +37,8 @@ public class SingleNoteActivity extends AppCompatActivity {
 
     Note note;
 
+    @BindView(R.id.singleToEditText)
+    EditText singleToEditText;
     @BindView(R.id.singleTitleEditText)
     EditText singleTitleEditText;
     @BindView(R.id.singleContentEditText)
@@ -153,6 +155,7 @@ public class SingleNoteActivity extends AppCompatActivity {
                     note = new Note();
                 note.setTitle(title);
                 note.setContent(content);
+
                 if (noteId != null && noteId != "") {
                     Call<Result> call = api.updateNote(token, note);
                     call.enqueue(new Callback<Result>() {
@@ -171,7 +174,12 @@ public class SingleNoteActivity extends AppCompatActivity {
                         }
                     });
                 } else {
-                    Call<Result> call = api.newNote(token, note);
+                    Call<Result> call;
+                    String sentTo = singleToEditText.getText().toString();
+                    if (sentTo.equals(""))
+                        call = api.newNote(token, note);
+                    else
+                        call = api.newNote(token, note, sentTo);
                     call.enqueue(new Callback<Result>() {
                         @Override
                         public void onResponse(Call<Result> call, Response<Result> response) {

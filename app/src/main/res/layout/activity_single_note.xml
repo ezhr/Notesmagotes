@@ -26,10 +26,19 @@
         tools:context="com.example.ezhr.notesmagotes.SingleNoteActivity">
 
         <EditText
+            android:id="@+id/singleToEditText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="To"
+            android:textColor="@color/colorAccent"
+            android:textColorHint="@color/colorAccent"
+            android:textSize="18sp" />
+
+        <EditText
             android:id="@+id/singleTitleEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="title"
+            android:hint="Title"
             android:textColor="@color/colorAccent"
             android:textColorHint="@color/colorAccent"
             android:textSize="18sp" />

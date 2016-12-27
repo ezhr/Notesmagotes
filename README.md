@@ -8,7 +8,8 @@ You are free to use this project as-is, or to modify as you see fit after clonin
 
 ###To-Do:
 
-1. Authentication through JSON tokens for users.
-2. Introduction of, and deletion of HTTP requests and routes as they arise.
-3. Push-notification support.
-4. Interfacing with an actual remote VPS to ensure compatibility.
+1. ~~Authentication through JSON tokens for users.~~  Implemented.  Users now authenticated with JWT sent from node.js app.  Tokens stored in shared preferences.
+2. Introduction of, and deletion of HTTP requests and routes as they arise.  **ONGOING.**
+3. ~~Push-notification support.~~  Implemented.  Users now notified of new notes saved to their notes.  Ability to send notes to other users by entering their username, reminiscent of e-mail systems of old.
+4. ~~Interfacing with an actual remote VPS to ensure compatibility.~~  Implemented.  Works.
+5. Bug squashing.  Many bugs still remaining, many errors not caught or handled with.  The app works well if everything is errorless, otherwise some unhandled errors may crash the app.  Use at your own discretion.

@@ -20,6 +20,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.ezhr.notesmagotes.models.Note;
+import com.google.firebase.iid.FirebaseInstanceId;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -156,6 +157,17 @@ public class NotesActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             case R.id.logout:
                 sharedPrefs.edit().clear().commit();
+                Thread thread = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            FirebaseInstanceId.getInstance().deleteInstanceId();
+                        } catch (Exception e) {
+                            Log.e(TAG, "onResponse: " + e);
+                        }
+                    }
+                });
+                thread.start();
                 startActivity(new Intent(NotesActivity.this, UserActivity.class));
                 finish();
         }

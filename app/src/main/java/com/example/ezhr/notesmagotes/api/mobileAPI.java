@@ -22,6 +22,11 @@ public interface mobileAPI {
     @POST("users/authenticate")
     Call<Result> login(@Body User user);
 
+    @Headers({"Content-Type: application/json"})
+    @POST("users/refreshtoken")
+    Call<Result> refreshFCMToken(@Header("x-token") String token, @Header("x-fcm-token") String
+            fcmToken);
+
 
     // Note requests
     @Headers({"Content-Type: application/json"})
@@ -31,6 +36,11 @@ public interface mobileAPI {
     @Headers({"Content-Type: application/json"})
     @POST("notes/new")
     Call<Result> newNote(@Header("x-token") String token, @Body Note note);
+
+    @Headers({"Content-Type: application/json"})
+    @POST("notes/new")
+    Call<Result> newNote(@Header("x-token") String token, @Body Note note, @Header("x-user")
+            String sentTo);
 
     @Headers({"Content-Type: application/json"})
     @POST("notes/update")

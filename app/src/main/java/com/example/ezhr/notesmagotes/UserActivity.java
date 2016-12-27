@@ -14,11 +14,15 @@ import android.widget.Toast;
 import com.example.ezhr.notesmagotes.api.mobileAPI;
 import com.example.ezhr.notesmagotes.models.Result;
 import com.example.ezhr.notesmagotes.models.User;
+import com.example.ezhr.notesmagotes.services.MyFirebaseInstanceIdService;
+import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.iid.FirebaseInstanceIdService;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.io.IOException;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -49,6 +53,7 @@ public class UserActivity extends AppCompatActivity {
     public static String BASE_URL = null;
     public final static String TOKEN_FILE = "com.example.ezhr.notesmagotes.token";
     public final static String TOKEN_KEY = "com.example.ezhr.notesmagotes.tokenkey";
+    public final static String FCM_TOKEN_KEY = "com.example.ezhr.notesmagotes.fcmtokenkey";
     public final static String USER_NAME = "com.example.ezhr.notesmagotes.username";
 
     public final static String SERVER_FILE = "com.example.ezhr.notesmagotes.server";
@@ -120,31 +125,31 @@ public class UserActivity extends AppCompatActivity {
         });
 
         userGoTextView.setOnClickListener(new View.OnClickListener() {
-                                          @Override
-                                          public void onClick(View v) {
-                                              String enteredUrl = serverUrlEditText.getText().toString();
-                                              Log.i(TAG, "setupApi: " + enteredUrl);
-                                              if (enteredUrl.charAt(enteredUrl.length() - 1) != '/')
-                                                  enteredUrl = enteredUrl + "/";
-                                              serverIpSharedPrefs.edit().putString(SERVER_KEY, enteredUrl).commit();
+                                              @Override
+                                              public void onClick(View v) {
+                                                  String enteredUrl = serverUrlEditText.getText().toString();
+                                                  Log.i(TAG, "setupApi: " + enteredUrl);
+                                                  if (enteredUrl.charAt(enteredUrl.length() - 1) != '/')
+                                                      enteredUrl = enteredUrl + "/";
+                                                  serverIpSharedPrefs.edit().putString(SERVER_KEY, enteredUrl).commit();
 
-                                              setupApi();
+                                                  setupApi();
 
-                                              if (usernameEditText.getText().length() < 1) {
-                                                  Toast.makeText(UserActivity.this, "Please enter a username", Toast.LENGTH_SHORT).show();
-                                              } else if (passwordEditText.getText().length() < 1) {
-                                                  Toast.makeText(UserActivity.this, "Please enter a password", Toast.LENGTH_SHORT).show();
-                                              } else {
-                                                  final String username = usernameEditText.getText().toString();
-                                                  final String password = passwordEditText.getText().toString();
-                                                  if (loginCondition) {
-                                                      login(username, password);
+                                                  if (usernameEditText.getText().length() < 1) {
+                                                      Toast.makeText(UserActivity.this, "Please enter a username", Toast.LENGTH_SHORT).show();
+                                                  } else if (passwordEditText.getText().length() < 1) {
+                                                      Toast.makeText(UserActivity.this, "Please enter a password", Toast.LENGTH_SHORT).show();
                                                   } else {
-                                                      signup(username, password);
+                                                      final String username = usernameEditText.getText().toString();
+                                                      final String password = passwordEditText.getText().toString();
+                                                      if (loginCondition) {
+                                                          login(username, password);
+                                                      } else {
+                                                          signup(username, password);
+                                                      }
                                                   }
                                               }
                                           }
-                                      }
         );
     }
 
@@ -152,28 +157,32 @@ public class UserActivity extends AppCompatActivity {
         User user = new User(username, password);
         Call<Result> call = api.login(user);
         call.enqueue(new Callback<Result>() {
-            @Override
-            public void onResponse(Call<Result> call, Response<Result> response) {
-                if (response.code() == 400) {
-                    try {
-                        JSONObject object = new JSONObject(response.errorBody().string());
-                        Toast.makeText(UserActivity.this, object.getString("message"), Toast.LENGTH_SHORT).show();
-                    } catch (Exception e) {
-                        Log.e(TAG, "onResponse: " + e);
-                    }
-                } else {
-                    SharedPreferences.Editor editor = tokenSharedPrefs.edit();
-                    editor.putString(TOKEN_KEY, response.body().getToken()).commit();
-                    editor.putString(USER_NAME, username).commit();
-                    goToNotes();
-                }
-            }
+                         @Override
+                         public void onResponse(Call<Result> call, Response<Result> response) {
+                             if (response.code() == 400) {
+                                 try {
+                                     JSONObject object = new JSONObject(response.errorBody().string());
+                                     Toast.makeText(UserActivity.this, object.getString("message"), Toast.LENGTH_SHORT).show();
+                                 } catch (Exception e) {
+                                     Log.e(TAG, "onResponse: " + e);
+                                 }
+                             } else {
+                                 SharedPreferences.Editor editor = tokenSharedPrefs.edit();
+                                 String token = response.body().getToken();
+                                 editor.putString(TOKEN_KEY, token).commit();
+                                 editor.putString(USER_NAME, username).commit();
+                                 FirebaseInstanceId.getInstance().getToken();
+                                 goToNotes();
+                             }
+                         }
 
-            @Override
-            public void onFailure(Call<Result> call, Throwable t) {
-                Log.e(TAG, "onFailure: " + t.toString());
-            }
-        });
+                         @Override
+                         public void onFailure(Call<Result> call, Throwable t) {
+                             Log.e(TAG, "onFailure: " + t.toString());
+                         }
+                     }
+
+        );
     }
 
 
